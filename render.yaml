@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: ai-tools-hub
+    env: python
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python -c "import nltk; nltk.download('punkt'); nltk.download('vader_lexicon')"
+    startCommand: gunicorn run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    disk:
+      name: model-cache
+      mountPath: /opt/render/project/src/model_cache
+      sizeGB: 10
