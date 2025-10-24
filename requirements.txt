@@ -8,7 +8,7 @@ SQLAlchemy==2.0.23
 
 # AI/ML Libraries
 transformers==4.35.2
-torch==2.1.1
+torch==2.2.2
 torchvision==0.16.1
 Pillow==10.1.0
 
@@ -32,3 +32,4 @@ sentencepiece==0.1.99
 pytest==7.4.3
 black==23.11.0
 flake8==6.1.0
+
