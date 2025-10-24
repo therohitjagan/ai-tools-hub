@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Home - AI Tools Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-12 text-center">
+            <h1 class="display-4 mb-3">
+                <i class="fas fa-robot text-primary"></i> Welcome to AI Tools Hub
+            </h1>
+            <p class="lead text-muted">
+                Your all-in-one platform for AI-powered text and image analysis
+            </p>
+        </div>
+    </div>
+
+    <!-- Tools Grid -->
+    <div class="row g-4">
+        <!-- Text Summarizer -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card tool-card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="tool-icon mb-3">
+                        <i class="fas fa-file-alt fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Text Summarizer</h5>
+                    <p class="card-text text-muted">
+                        Condense long articles and documents into concise summaries
+                    </p>
+                    <a href="/summarizer" class="btn btn-primary">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Translator -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card tool-card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="tool-icon mb-3">
+                        <i class="fas fa-language fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Language Translator</h5>
+                    <p class="card-text text-muted">
+                        Translate text between multiple languages instantly
+                    </p>
+                    <a href="/translator" class="btn btn-success">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sentiment Analyzer -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card tool-card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="tool-icon mb-3">
+                        <i class="fas fa-smile fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Sentiment Analyzer</h5>
+                    <p class="card-text text-muted">
+                        Analyze the emotional tone and sentiment of any text
+                    </p>
+                    <a href="/sentiment" class="btn btn-warning">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Caption -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card tool-card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="tool-icon mb-3">
+                        <i class="fas fa-image fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">Image Caption</h5>
+                    <p class="card-text text-muted">
+                        Generate descriptive captions for your images using AI
+                    </p>
+                    <a href="/image-caption" class="btn btn-info">
+                        Try Now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5">
+        <div class="col-lg-12">
+            <h2 class="text-center mb-4">Why Choose AI Tools Hub?</h2>
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="fas fa-bolt fa-3x text-primary mb-3"></i>
+            <h5>Fast & Efficient</h5>
+            <p class="text-muted">Get instant results powered by state-of-the-art AI models</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="fas fa-lock fa-3x text-success mb-3"></i>
+            <h5>Secure & Private</h5>
+            <p class="text-muted">Your data is processed securely and never stored permanently</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="fas fa-mobile-alt fa-3x text-info mb-3"></i>
+            <h5>Responsive Design</h5>
+            <p class="text-muted">Works seamlessly on desktop, tablet, and mobile devices</p>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row mt-5">
+        <div class="col-lg-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">Platform Statistics</h3>
+                    <div class="row text-center" id="stats-container">
+                        <div class="col-md-3">
+                            <h2 class="text-primary" id="total-requests">-</h2>
+                            <p class="text-muted">Total Requests</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="text-success" id="summarizer-count">-</h2>
+                            <p class="text-muted">Summarizations</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="text-warning" id="translator-count">-</h2>
+                            <p class="text-muted">Translations</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h2 class="text-info" id="sentiment-count">-</h2>
+                            <p class="text-muted">Sentiment Analyses</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Load statistics on page load
+    $(document).ready(function() {
+        $.ajax({
+            url: '/api/stats',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    $('#total-requests').text(response.total_requests || 0);
+                    $('#summarizer-count').text(response.tool_stats.summarizer || 0);
+                    $('#translator-count').text(response.tool_stats.translator || 0);
+                    $('#sentiment-count').text(response.tool_stats.sentiment || 0);
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

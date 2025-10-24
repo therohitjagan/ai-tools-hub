@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Image Caption Generator - AI Tools Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-image"></i> Image Caption Generator
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Upload an image and let AI generate descriptive captions automatically.
+                    </p>
+
+                    <form id="captionForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label">Select Image</label>
+                            <input 
+                                class="form-control" 
+                                type="file" 
+                                id="imageFile" 
+                                accept="image/*"
+                                required
+                            >
+                            <div class="form-text">Supported formats: PNG, JPG, JPEG, GIF (Max 16MB)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    id="detailedCaption"
+                                >
+                                <label class="form-check-label" for="detailedCaption">
+                                    Generate detailed caption
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="imagePreview" class="mb-3 text-center" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview" class="img-fluid rounded" style="max-height: 400px;">
+                        </div>
+
+                        <button type="submit" class="btn btn-info btn-lg w-100" id="captionBtn">
+                            <i class="fas fa-magic"></i> Generate Caption
+                        </button>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Generating caption...</p>
+                    </div>
+
+                    <!-- Result Section -->
+                    <div id="resultSection" class="mt-4" style="display: none;">
+                        <hr>
+                        <h5>Generated Caption:</h5>
+                        <div class="alert alert-info">
+                            <p id="captionText" class="mb-0"></p>
+                        </div>
+                        <div class="text-center mb-3">
+                            <img id="resultImage" src="" alt="Uploaded Image" class="img-fluid rounded" style="max-height: 300px;">
+                        </div>
+                        <div class="text-center">
+                            <strong>Processing Time:</strong> <span id="processingTime"></span>s
+                        </div>
+                        <button class="btn btn-secondary mt-3" onclick="copyCaption()">
+                            <i class="fas fa-copy"></i> Copy Caption
+                        </button>
+                        <button class="btn btn-primary mt-3" onclick="resetForm()">
+                            <i class="fas fa-redo"></i> Try Another Image
+                        </button>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="errorSection" class="mt-4" style="display: none;">
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> <span id="errorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Image preview
+    $('#imageFile').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#previewImg').attr('src', e.target.result);
+                $('#imagePreview').fadeIn();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form submission
+    $('#captionForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        const imageFile = $('#imageFile')[0].files[0];
+        const detailed = $('#detailedCaption').is(':checked');
+        
+        if (!imageFile) {
+            alert('Please select an image file');
+            return;
+        }
+        
+        formData.append('image', imageFile);
+        formData.append('detailed', detailed);
+        
+        $('#resultSection').hide();
+        $('#errorSection').hide();
+        $('#loadingSpinner').show();
+        $('#captionBtn').prop('disabled', true);
+        
+        $.ajax({
+            url: '/image-caption/api/caption',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                $('#loadingSpinner').hide();
+                $('#captionBtn').prop('disabled', false);
+                
+                if (response.success) {
+                    $('#captionText').text(response.caption);
+                    $('#resultImage').attr('src', response.image_url);
+                    $('#processingTime').text(response.processing_time);
+                    $('#resultSection').fadeIn();
+                } else {
+                    $('#errorMessage').text(response.error);
+                    $('#errorSection').fadeIn();
+                }
+            },
+            error: function(xhr) {
+                $('#loadingSpinner').hide();
+                $('#captionBtn').prop('disabled', false);
+                const error = xhr.responseJSON?.error || 'An error occurred';
+                $('#errorMessage').text(error);
+                $('#errorSection').fadeIn();
+            }
+        });
+    });
+
+    function copyCaption() {
+        const text = $('#captionText').text();
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Caption copied to clipboard!');
+        });
+    }
+
+    function resetForm() {
+        $('#captionForm')[0].reset();
+        $('#imagePreview').hide();
+        $('#resultSection').hide();
+        $('#errorSection').hide();
+    }
+</script>
+{% endblock %}

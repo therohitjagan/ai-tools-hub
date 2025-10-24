@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Text Summarizer - AI Tools Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-file-alt"></i> Text Summarizer
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Enter or paste your text below to generate a concise summary. Works best with articles, documents, or long-form content.
+                    </p>
+
+                    <form id="summarizerForm">
+                        <div class="mb-3">
+                            <label for="inputText" class="form-label">Input Text</label>
+                            <textarea 
+                                class="form-control" 
+                                id="inputText" 
+                                rows="10" 
+                                placeholder="Paste your text here (minimum 30 words)..."
+                                required
+                            ></textarea>
+                            <div class="form-text">
+                                <span id="wordCount">0</span> words
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="maxLength" class="form-label">Max Summary Length</label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="maxLength" 
+                                    value="150" 
+                                    min="50" 
+                                    max="300"
+                                >
+                            </div>
+                            <div class="col-md-6">
+                                <label for="minLength" class="form-label">Min Summary Length</label>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="minLength" 
+                                    value="50" 
+                                    min="30" 
+                                    max="150"
+                                >
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="summarizeBtn">
+                            <i class="fas fa-magic"></i> Summarize Text
+                        </button>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Processing your text...</p>
+                    </div>
+
+                    <!-- Result Section -->
+                    <div id="resultSection" class="mt-4" style="display: none;">
+                        <hr>
+                        <h5>Summary:</h5>
+                        <div class="alert alert-success">
+                            <p id="summaryText"></p>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <strong>Original:</strong> <span id="originalLength"></span> words
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Summary:</strong> <span id="summaryLength"></span> words
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Time:</strong> <span id="processingTime"></span>s
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary mt-3" onclick="copyToClipboard()">
+                            <i class="fas fa-copy"></i> Copy Summary
+                        </button>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="errorSection" class="mt-4" style="display: none;">
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> <span id="errorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example Text -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Try with example text:</h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadExampleText()">
+                        Load Example
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Word counter
+    $('#inputText').on('input', function() {
+        const text = $(this).val().trim();
+        const wordCount = text ? text.split(/\s+/).length : 0;
+        $('#wordCount').text(wordCount);
+    });
+
+    // Form submission
+    $('#summarizerForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const text = $('#inputText').val().trim();
+        const maxLength = parseInt($('#maxLength').val());
+        const minLength = parseInt($('#minLength').val());
+        
+        // Hide previous results
+        $('#resultSection').hide();
+        $('#errorSection').hide();
+        $('#loadingSpinner').show();
+        $('#summarizeBtn').prop('disabled', true);
+        
+        // Make API call
+        $.ajax({
+            url: '/summarizer/api/summarize',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                text: text,
+                max_length: maxLength,
+                min_length: minLength
+            }),
+            success: function(response) {
+                $('#loadingSpinner').hide();
+                $('#summarizeBtn').prop('disabled', false);
+                
+                if (response.success) {
+                    $('#summaryText').text(response.summary);
+                    $('#originalLength').text(response.original_length);
+                    $('#summaryLength').text(response.summary_length);
+                    $('#processingTime').text(response.processing_time);
+                    $('#resultSection').fadeIn();
+                } else {
+                    $('#errorMessage').text(response.error);
+                    $('#errorSection').fadeIn();
+                }
+            },
+            error: function(xhr) {
+                $('#loadingSpinner').hide();
+                $('#summarizeBtn').prop('disabled', false);
+                const error = xhr.responseJSON?.error || 'An error occurred';
+                $('#errorMessage').text(error);
+                $('#errorSection').fadeIn();
+            }
+        });
+    });
+
+    function copyToClipboard() {
+        const text = $('#summaryText').text();
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Summary copied to clipboard!');
+        });
+    }
+
+    function loadExampleText() {
+        const exampleText = `Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by humans and animals. Leading AI textbooks define the field as the study of "intelligent agents": any device that perceives its environment and takes actions that maximize its chance of successfully achieving its goals. Colloquially, the term "artificial intelligence" is often used to describe machines that mimic "cognitive" functions that humans associate with the human mind, such as "learning" and "problem solving". As machines become increasingly capable, tasks considered to require "intelligence" are often removed from the definition of AI, a phenomenon known as the AI effect. A quip in Tesler's Theorem says "AI is whatever hasn't been done yet." For instance, optical character recognition is frequently excluded from things considered to be AI, having become a routine technology. Modern machine learning capabilities are classified as weak AI in contrast to strong AI. While weak AI is by definition focused on one specific task, strong AI is intended to be able to handle any task with an intelligence comparable or superior to that of a human.`;
+        $('#inputText').val(exampleText);
+        $('#inputText').trigger('input');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Sentiment Analyzer - AI Tools Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fas fa-smile"></i> Sentiment Analyzer
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Analyze the emotional tone and sentiment of any text using advanced NLP models.
+                    </p>
+
+                    <form id="sentimentForm">
+                        <div class="mb-3">
+                            <label for="inputText" class="form-label">Text to Analyze</label>
+                            <textarea 
+                                class="form-control" 
+                                id="inputText" 
+                                rows="6" 
+                                placeholder="Enter text to analyze sentiment..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-lg w-100" id="analyzeBtn">
+                            <i class="fas fa-search"></i> Analyze Sentiment
+                        </button>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Analyzing sentiment...</p>
+                    </div>
+
+                    <!-- Result Section -->
+                    <div id="resultSection" class="mt-4" style="display: none;">
+                        <hr>
+                        <h5>Analysis Results:</h5>
+                        <div class="card mb-3" id="sentimentCard">
+                            <div class="card-body text-center">
+                                <h2 id="sentimentLabel" class="mb-3"></h2>
+                                <div class="progress mb-3" style="height: 30px;">
+                                    <div id="confidenceBar" class="progress-bar" role="progressbar"></div>
+                                </div>
+                                <p class="text-muted mb-0" id="interpretation"></p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6>Polarity</h6>
+                                        <h4 id="polarity" class="text-primary"></h4>
+                                        <small class="text-muted">(-1 to 1)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h6>Subjectivity</h6>
+                                        <h4 id="subjectivity" class="text-info"></h4>
+                                        <small class="text-muted">(0 to 1)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <strong>Processing Time:</strong> <span id="processingTime"></span>s
+                        </div>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="errorSection" class="mt-4" style="display: none;">
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> <span id="errorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example Texts -->
+            <div class="card mt-4 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Try with example texts:</h6>
+                    <button class="btn btn-sm btn-outline-success me-2" onclick="loadExample('positive')">
+                        Positive Example
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="loadExample('negative')">
+                        Negative Example
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $('#sentimentForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const text = $('#inputText').val().trim();
+        
+        $('#resultSection').hide();
+        $('#errorSection').hide();
+        $('#loadingSpinner').show();
+        $('#analyzeBtn').prop('disabled', true);
+        
+        $.ajax({
+            url: '/sentiment/api/analyze',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ text: text }),
+            success: function(response) {
+                $('#loadingSpinner').hide();
+                $('#analyzeBtn').prop('disabled', false);
+                
+                if (response.success) {
+                    const result = response.result;
+                    
+                    // Update sentiment label
+                    const labelClass = result.label === 'POSITIVE' ? 'text-success' : 'text-danger';
+                    const icon = result.label === 'POSITIVE' ? 'fa-smile' : 'fa-frown';
+                    $('#sentimentLabel').html(`<i class="fas ${icon} ${labelClass}"></i> ${result.label}`);
+                    
+                    // Update confidence bar
+                    const barClass = result.label === 'POSITIVE' ? 'bg-success' : 'bg-danger';
+                    $('#confidenceBar')
+                        .removeClass('bg-success bg-danger')
+                        .addClass(barClass)
+                        .css('width', result.confidence + '%')
+                        .text(result.confidence + '%');
+                    
+                    // Update interpretation
+                    $('#interpretation').text(result.interpretation);
+                    
+                    // Update metrics
+                    $('#polarity').text(result.polarity);
+                    $('#subjectivity').text(result.subjectivity);
+                    $('#processingTime').text(response.processing_time);
+                    
+                    $('#resultSection').fadeIn();
+                } else {
+                    $('#errorMessage').text(response.error);
+                    $('#errorSection').fadeIn();
+                }
+            },
+            error: function(xhr) {
+                $('#loadingSpinner').hide();
+                $('#analyzeBtn').prop('disabled', false);
+                const error = xhr.responseJSON?.error || 'An error occurred';
+                $('#errorMessage').text(error);
+                $('#errorSection').fadeIn();
+            }
+        });
+    });
+
+    function loadExample(type) {
+        const examples = {
+            positive: "I absolutely love this product! It exceeded all my expectations and the customer service was amazing. Highly recommended!",
+            negative: "This is the worst experience I've ever had. The product broke after one day and customer support was unhelpful."
+        };
+        $('#inputText').val(examples[type]);
+    }
+</script>
+{% endblock %}

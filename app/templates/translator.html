@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Language Translator - AI Tools Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-language"></i> Language Translator
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Translate text between multiple languages using advanced neural machine translation.
+                    </p>
+
+                    <form id="translatorForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="sourceLanguage" class="form-label">From Language</label>
+                                <select class="form-select" id="sourceLanguage">
+                                    <option value="en">English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="targetLanguage" class="form-label">To Language</label>
+                                <select class="form-select" id="targetLanguage">
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputText" class="form-label">Text to Translate</label>
+                            <textarea 
+                                class="form-control" 
+                                id="inputText" 
+                                rows="6" 
+                                placeholder="Enter text to translate..."
+                                required
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100" id="translateBtn">
+                            <i class="fas fa-exchange-alt"></i> Translate
+                        </button>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Translating...</p>
+                    </div>
+
+                    <!-- Result Section -->
+                    <div id="resultSection" class="mt-4" style="display: none;">
+                        <hr>
+                        <h5>Translation:</h5>
+                        <div class="alert alert-success">
+                            <p id="translationText"></p>
+                        </div>
+                        <div class="text-center">
+                            <strong>Processing Time:</strong> <span id="processingTime"></span>s
+                        </div>
+                        <button class="btn btn-secondary mt-3" onclick="copyTranslation()">
+                            <i class="fas fa-copy"></i> Copy Translation
+                        </button>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="errorSection" class="mt-4" style="display: none;">
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> <span id="errorMessage"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $('#translatorForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const text = $('#inputText').val().trim();
+        const sourceLang = $('#sourceLanguage').val();
+        const targetLang = $('#targetLanguage').val();
+        
+        if (sourceLang === targetLang) {
+            alert('Source and target languages must be different!');
+            return;
+        }
+        
+        $('#resultSection').hide();
+        $('#errorSection').hide();
+        $('#loadingSpinner').show();
+        $('#translateBtn').prop('disabled', true);
+        
+        $.ajax({
+            url: '/translator/api/translate',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                text: text,
+                source_lang: sourceLang,
+                target_lang: targetLang
+            }),
+            success: function(response) {
+                $('#loadingSpinner').hide();
+                $('#translateBtn').prop('disabled', false);
+                
+                if (response.success) {
+                    $('#translationText').text(response.translation);
+                    $('#processingTime').text(response.processing_time);
+                    $('#resultSection').fadeIn();
+                } else {
+                    $('#errorMessage').text(response.error);
+                    $('#errorSection').fadeIn();
+                }
+            },
+            error: function(xhr) {
+                $('#loadingSpinner').hide();
+                $('#translateBtn').prop('disabled', false);
+                const error = xhr.responseJSON?.error || 'An error occurred';
+                $('#errorMessage').text(error);
+                $('#errorSection').fadeIn();
+            }
+        });
+    });
+
+    function copyTranslation() {
+        const text = $('#translationText').text();
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Translation copied to clipboard!');
+        });
+    }
+</script>
+{% endblock %}
