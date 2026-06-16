@@ -1,20 +1,28 @@
 {
-    "ads_enabled": true,
-    "primary_provider": "admob",
-    "config_version": 1,
-    "admob": {
-        "enabled": true,
-        "app_id": "ca-app-pub-6364230451235524~2363213144",
-        "interstitial_id": "ca-app-pub-6364230451235524/7747401762",
-        "app_open_id": "ca-app-pub-6364230451235524/6981115000",
-        "banner_id": "ca-app-pub-6364230451235524/5914233898",
-        "native_id": "ca-app-pub-6364230451235524/5831684865"
-    },
-    "unity_levelplay": {
-        "enabled": true,
-        "app_key": "1738c8211",
-        "test_mode": true,
-        "interstitial_placement_id": "Interstitial_Android",
-        "banner_placement_id": "Banner_Android"
-    }
+  "ads_enabled": true,
+  "primary_provider": "admob",
+  "config_version": 1,
+  "admob": {
+    "enabled": true,
+    "app_id": "ca-app-pub-6364230451235524~2363213144",
+    "interstitial_id": "ca-app-pub-6364230451235524/7747401762",
+    "app_open_id": "ca-app-pub-6364230451235524/6981115000",
+    "banner_id": "ca-app-pub-6364230451235524/5914233898",
+    "native_id": "ca-app-pub-6364230451235524/5831684865"
+  },
+  "unity": {
+    "enabled": true,
+    "game_id": "5616499",
+    "test_mode": true,
+    "interstitial_placement_id": "Interstitial_Android",
+    "banner_placement_id": "Banner_Android"
+  },
+  "facebook": {
+    "enabled": true,
+    "app_id": "2004985610117936",
+    "placement_id_banner": "2004985610117936_2004986826784481",
+    "placement_id_interstitial": "2004985610117936_2004986983451132",
+    "placement_id_native": "2004985610117936_2004987126784451",
+    "test_mode": true
+  }
 }
