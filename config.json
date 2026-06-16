@@ -1,7 +1,7 @@
 {
     "ads_enabled": true,
-    "primary_provider": "admob",
-    "config_version": 1,
+    "primary_provider": "unity",
+    "config_version": 2,
     "admob": {
         "enabled": false,
         "app_id": "ca-app-pub-6364230451235524~2363213144",
